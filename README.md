@@ -1,50 +1,57 @@
-# Welcome to your Expo app 👋
+# 🌌 Catálogo de Curiosidades Planetárias
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+![Universo](https://media.giphy.com/media/LwIyvaNcnzsD6/giphy.gif)
 
-## Get started
+Bem-vindo ao repositório oficial do projeto **Catálogo de Curiosidades Planetárias**, desenvolvido com o objetivo de permitir que qualquer pessoa registre e gerencie planetas fictícios ou reais, com imagens e curiosidades únicas.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 🚀 Objetivo do Projeto
 
-2. Start the app
+Desenvolver uma aplicação mobile multiplataforma com React Native + Expo que permita:
 
-   ```bash
-   npx expo start
-   ```
+* Inserir novos planetas com uma imagem e curiosidade à escolha do usuário
+* Visualizar uma lista dinâmica desses planetas
+* Editar detalhes dos planetas
+* Excluir planetas do catálogo
 
-In the output, you'll find options to open the app in a
+A ideia é criar uma experiência divertida, flexível e educativa — afinal, cada planeta pode carregar uma história diferente 🪐
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 📱 Aplicativo Mobile
 
-## Get a fresh project
+* Desenvolvido com **React Native + Expo**
+* Usa **TypeScript** para maior organização e tipagem
+* Requisições HTTP com **Axios**
+* Testado em dispositivos reais via **Expo Go**
+* Estrutura modular com componentes reutilizáveis
 
-When you're ready, run:
+### Funcionalidades:
 
-```bash
-npm run reset-project
-```
+✅ Inserir planeta com imagem personalizada
+✅ Adicionar uma curiosidade livre
+✅ Listar todos os planetas cadastrados
+✅ Atualizar planetas existentes
+✅ Excluir planetas
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🔧 Back-End da Aplicação
 
-To learn more about developing your project with Expo, look at the following resources:
+* Desenvolvido com **Spring Boot**
+* Projeto Maven com banco **H2 em memória** chamado `spaceX`
+* API REST documentada com **Swagger**
+* Estrutura simples focada em operações CRUD
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Endpoints disponíveis:
 
-## Join the community
+* Criar planeta
+* Buscar por ID
+* Listar todos
+* Atualizar por ID
+* Deletar por ID
 
-Join our community of developers creating universal apps.
+A documentação completa da API pode ser acessada via Swagger UI.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+------
