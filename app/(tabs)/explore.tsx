@@ -1,10 +1,11 @@
+import { MajorMonoDisplay_400Regular, useFonts } from '@expo-google-fonts/major-mono-display';
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View, TouchableOpacity, Modal, TextInput, FlatList, Platform, Dimensions, ImageBackground, Alert } from 'react-native';
-import React, { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useFonts, MajorMonoDisplay_400Regular } from '@expo-google-fonts/major-mono-display';
+import * as ImagePicker from 'expo-image-picker';
+import { useEffect, useState } from 'react';
+import { Alert, Dimensions, FlatList, ImageBackground, Keyboard, Modal, Platform, Image as RNImage, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
+// URL base do backend
+const API_URL = 'https://lux-back-end-1.onrender.com/planetas';
 
 // Obter dimensões da tela para responsividade
 const { width, height } = Dimensions.get('window');
@@ -12,9 +13,9 @@ const { width, height } = Dimensions.get('window');
 // Tipo para os objetos de planeta
 interface PlanetItem {
   id: string;
-  name: string;
-  curiosity: string;
-  image: string;
+  nomePlaneta: string;
+  descricao: string;
+  imgUrl: string;
   imageUri?: string; // URI para imagens enviadas pelo usuário
 }
 
@@ -26,6 +27,28 @@ const getPlanetImage = (imageName: string) => {
 
 // Lista vazia para começar - usuário adicionará seus próprios planetas
 const initialPlanets: PlanetItem[] = [];
+
+// Função para comprimir a imagem
+const compressImage = async (imageUri: string) => {
+  try {
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    
+    // Reduz a qualidade do blob
+    const compressedBlob = new Blob([blob], { type: 'image/jpeg' });
+    
+    // Converte para base64
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(compressedBlob);
+    });
+  } catch (error) {
+    console.error('Erro ao comprimir imagem:', error);
+    throw error;
+  }
+};
 
 export default function PlanetExploreScreen() {
   // Estado para carregar as fontes
@@ -51,36 +74,38 @@ export default function PlanetExploreScreen() {
     loadPlanets();
   }, []);
 
-  // Função para carregar os planetas do AsyncStorage
+  // Função para carregar os planetas do backend
   const loadPlanets = async () => {
     try {
-      const storedPlanets = await AsyncStorage.getItem('planets');
-      
-      if (storedPlanets) {
-        setPlanets(JSON.parse(storedPlanets));
-      } else {
-        // Se não houver dados salvos, use os dados iniciais
-        await AsyncStorage.setItem('planets', JSON.stringify(initialPlanets));
-        setPlanets(initialPlanets);
+      const response = await fetch(API_URL);
+      if (!response.ok) {
+        throw new Error('Erro ao carregar planetas');
       }
+      const data = await response.json();
+      setPlanets(data);
     } catch (error) {
       console.error('Erro ao carregar planetas:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os planetas.');
     }
   };
 
   // Função para selecionar imagem do dispositivo
-  const pickImage = () => {
-    // Exibir alerta para informar que a funcionalidade está em desenvolvimento
-    Alert.alert(
-      "Selecionar Imagem", 
-      "A função de upload de imagens está em desenvolvimento. Por enquanto, será usada a imagem padrão.",
-      [
-        {
-          text: "OK",
-          onPress: () => console.log("Alerta fechado")
-        }
-      ]
-    );
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        setNewPlanetImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Erro ao selecionar imagem:', error);
+      Alert.alert('Erro', 'Não foi possível selecionar a imagem.');
+    }
   };
 
   // Função para adicionar um novo planeta
@@ -90,25 +115,60 @@ export default function PlanetExploreScreen() {
       return;
     }
     
-    const newPlanet: PlanetItem = {
-      id: Date.now().toString(),
-      name: newPlanetName,
-      curiosity: newPlanetCuriosity || 'Nenhuma curiosidade adicionada.',
-      image: 'adaptive-icon',
-      // No futuro, aqui será armazenada a URI da imagem selecionada
-    };
-    
-    const updatedPlanets = [...planets, newPlanet];
     try {
-      await AsyncStorage.setItem('planets', JSON.stringify(updatedPlanets));
-      setPlanets(updatedPlanets);
+      // Converter e comprimir a imagem se houver uma selecionada
+      let base64Image = '';
+      if (newPlanetImageUri) {
+        console.log('Comprimindo imagem:', newPlanetImageUri);
+        base64Image = await compressImage(newPlanetImageUri) as string;
+        console.log('Imagem comprimida com sucesso');
+      }
+
+      // Preparar os dados do planeta com os nomes corretos dos campos
+      const planetData = {
+        nomePlaneta: newPlanetName.trim(),
+        descricao: newPlanetCuriosity.trim() || 'Nenhuma curiosidade adicionada.',
+        imgUrl: base64Image || 'https://via.placeholder.com/150'
+      };
+
+      console.log('Enviando dados do planeta:', {
+        ...planetData,
+        imgUrl: base64Image ? 'base64 image data...' : planetData.imgUrl
+      });
+
+      // Enviar para o backend
+      const response = await fetch(`${API_URL}/criar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(planetData),
+      });
+
+      console.log('Status da resposta:', response.status);
+      const responseText = await response.text();
+      console.log('Resposta do servidor:', responseText);
+
+      if (!response.ok) {
+        throw new Error(`Erro ao salvar no backend: ${responseText}`);
+      }
+
+      const savedPlanet = JSON.parse(responseText);
+      console.log('Planeta salvo:', savedPlanet);
+      
+      // Atualizar o estado local
+      setPlanets(prevPlanets => [...prevPlanets, savedPlanet]);
+      
+      // Limpar o formulário
       setNewPlanetName('');
       setNewPlanetCuriosity('');
       setNewPlanetImageUri(null);
       setAddModalVisible(false);
+      Keyboard.dismiss();
     } catch (error) {
       console.error('Erro ao adicionar planeta:', error);
-      Alert.alert('Erro', 'Não foi possível salvar o planeta.');
+      Alert.alert('Erro', 'Não foi possível salvar o planeta. Por favor, tente novamente.');
     }
   };
 
@@ -116,42 +176,64 @@ export default function PlanetExploreScreen() {
   const updatePlanet = async () => {
     if (!currentPlanet || newPlanetCuriosity.trim() === '') return;
     
-    const updatedPlanets = planets.map(planet => {
-      if (planet.id === currentPlanet.id) {
-        return {
-          ...planet,
-          curiosity: newPlanetCuriosity,
-        };
-      }
-      return planet;
-    });
-    
     try {
-      await AsyncStorage.setItem('planets', JSON.stringify(updatedPlanets));
-      setPlanets(updatedPlanets);
+      const response = await fetch(`${API_URL}/${currentPlanet.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...currentPlanet,
+          descricao: newPlanetCuriosity,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar planeta');
+      }
+
+      const updatedPlanet = await response.json();
+      
+      // Atualizar o estado local
+      setPlanets(prevPlanets => 
+        prevPlanets.map(planet => 
+          planet.id === currentPlanet.id ? updatedPlanet : planet
+        )
+      );
+      
       setCurrentPlanet(null);
       setNewPlanetCuriosity('');
       setEditModalVisible(false);
+      Keyboard.dismiss();
     } catch (error) {
       console.error('Erro ao atualizar planeta:', error);
+      Alert.alert('Erro', 'Não foi possível atualizar o planeta.');
     }
   };
 
   // Função para excluir um planeta
   const deletePlanet = async (id: string) => {
-    const updatedPlanets = planets.filter(planet => planet.id !== id);
     try {
-      await AsyncStorage.setItem('planets', JSON.stringify(updatedPlanets));
-      setPlanets(updatedPlanets);
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao excluir planeta');
+      }
+
+      // Atualizar o estado local
+      setPlanets(prevPlanets => prevPlanets.filter(planet => planet.id !== id));
     } catch (error) {
       console.error('Erro ao excluir planeta:', error);
+      Alert.alert('Erro', 'Não foi possível excluir o planeta.');
     }
   };
 
   // Função para abrir o modal de edição
   const openEditModal = (planet: PlanetItem) => {
     setCurrentPlanet(planet);
-    setNewPlanetCuriosity(planet.curiosity);
+    setNewPlanetCuriosity(planet.descricao);
     setEditModalVisible(true);
   };
   
@@ -160,38 +242,30 @@ export default function PlanetExploreScreen() {
     return (
       <View style={styles.planetCard}>
         <View style={styles.planetImageContainer}>
-          <Image
-            source={item.imageUri ? { uri: item.imageUri } : getPlanetImage(item.image)}
+          <RNImage
+            source={{ uri: item.imgUrl }}
             style={styles.planetImage}
-            contentFit="cover"
+            resizeMode="cover"
           />
         </View>
         
         <View style={styles.planetInfo}>
-          <Text style={styles.planetName}>{item.name}</Text>
+          <Text style={styles.planetName}>{item.nomePlaneta}</Text>
           
           <Text style={styles.curiosityLabel}>Curiosidade:</Text>
-          <Text style={styles.curiosityText}>{item.curiosity}</Text>
+          <Text style={styles.curiosityText}>{item.descricao}</Text>
           
           <View style={styles.buttonContainer}>
             <TouchableOpacity 
               style={styles.editButton}
               onPress={() => openEditModal(item)}>
-              <Image 
-                source={require('../../assets/images/image 6.png')} 
-                style={styles.buttonIcon} 
-                contentFit="contain"
-              />
+              <Text style={styles.buttonText}>Editar</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
               style={styles.deleteButton}
               onPress={() => deletePlanet(item.id)}>
-              <Image 
-                source={require('../../assets/images/image.png')} 
-                style={styles.buttonIcon} 
-                contentFit="contain"
-              />
+              <Text style={styles.buttonText}>Excluir</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -210,130 +284,65 @@ export default function PlanetExploreScreen() {
 
   // Renderiza a interface principal
   return (
-    <View style={styles.container}>
-      <ImageBackground 
-        source={require('../../assets/images/1_VqSGgUTTUutNfcKbb7ed9w.gif')} 
-        style={styles.background}
-        resizeMode="cover"
-      >
-        {/* Header com logo e botão de adicionar */}
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoTextWhite}>s</Text>
-            <Text style={styles.logoTextGray}>pace</Text>
-            <Text style={styles.logoTextPurple}>X</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <ImageBackground 
+          source={require('../../assets/images/1_VqSGgUTTUutNfcKbb7ed9w.gif')} 
+          style={styles.background}
+          resizeMode="cover"
+        >
+          {/* Header com logo e botão de adicionar */}
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoTextWhite}>s</Text>
+              <Text style={styles.logoTextGray}>pace</Text>
+              <Text style={styles.logoTextPurple}>X</Text>
+            </View>
+            
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setAddModalVisible(true)}
+            >
+              <Text style={styles.addButtonText}>Adicionar</Text>
+            </TouchableOpacity>
           </View>
-          
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setAddModalVisible(true)}
-          >
-            <Text style={styles.addButtonText}>Adicionar</Text>
-          </TouchableOpacity>
-        </View>
 
-        {/* Lista de planetas */}
-        <FlatList
-          data={planets}
-          renderItem={renderPlanetItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.planetsList}
-        />
-      </ImageBackground>
+          {/* Lista de planetas */}
+          <FlatList
+            data={planets}
+            renderItem={renderPlanetItem}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.planetsList}
+          />
+        </ImageBackground>
 
-      {/* Modal para adicionar novo planeta */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={addModalVisible}
-        onRequestClose={() => setAddModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Adicionar Novo Planeta</Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.modalLabel}>Nome do Planeta:</Text>
-              <TextInput
-                style={styles.input}
-                value={newPlanetName}
-                onChangeText={setNewPlanetName}
-                placeholder="Ex: Marte"
-                placeholderTextColor="rgba(255, 255, 255, 0.5)"
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.modalLabel}>Curiosidade:</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                value={newPlanetCuriosity}
-                onChangeText={setNewPlanetCuriosity}
-                placeholder="Ex: Marte tem a montanha mais alta do sistema solar"
-                placeholderTextColor="rgba(255, 255, 255, 0.5)"
-                multiline={true}
-                numberOfLines={3}
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.modalLabel}>Imagem:</Text>
-              <TouchableOpacity 
-                style={styles.imagePickerButton}
-                onPress={pickImage}
-              >
-                <View style={styles.imagePreview}>
-                  {newPlanetImageUri ? (
-                    <Image
-                      source={{ uri: newPlanetImageUri }}
-                      style={{ width: '100%', height: '100%', borderRadius: 40 }}
-                      contentFit="cover"
-                    />
-                  ) : (
-                    <View style={styles.imagePickerOverlay}>
-                      <Text style={styles.imagePickerText}>Selecionar imagem</Text>
-                    </View>
-                  )}
+        {/* Modal para adicionar novo planeta */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={addModalVisible}
+          onRequestClose={() => {
+            setAddModalVisible(false);
+            Keyboard.dismiss();
+          }}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Adicionar Novo Planeta</Text>
+                
+                <View style={styles.formGroup}>
+                  <Text style={styles.modalLabel}>Nome do Planeta:</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={newPlanetName}
+                    onChangeText={setNewPlanetName}
+                    placeholder="Ex: Marte"
+                    placeholderTextColor="rgba(255, 255, 255, 0.5)"
+                    returnKeyType="done"
+                    onSubmitEditing={Keyboard.dismiss}
+                  />
                 </View>
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.buttonRow}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={() => {
-                  setNewPlanetName('');
-                  setNewPlanetCuriosity('');
-                  setNewPlanetImageUri(null);
-                  setAddModalVisible(false);
-                }}
-              >
-                <Text style={styles.buttonText}>Cancelar</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.button, styles.confirmButton]}
-                onPress={addPlanet}
-              >
-                <Text style={styles.buttonText}>Adicionar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal para editar planeta */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={editModalVisible}
-        onRequestClose={() => setEditModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            {currentPlanet && (
-              <>
-                <Text style={styles.modalTitle}>Editar {currentPlanet.name}</Text>
                 
                 <View style={styles.formGroup}>
                   <Text style={styles.modalLabel}>Curiosidade:</Text>
@@ -341,20 +350,46 @@ export default function PlanetExploreScreen() {
                     style={[styles.input, styles.textArea]}
                     value={newPlanetCuriosity}
                     onChangeText={setNewPlanetCuriosity}
-                    placeholder="Adicione uma curiosidade"
+                    placeholder="Ex: Marte tem a montanha mais alta do sistema solar"
                     placeholderTextColor="rgba(255, 255, 255, 0.5)"
                     multiline={true}
                     numberOfLines={3}
+                    returnKeyType="done"
+                    onSubmitEditing={Keyboard.dismiss}
                   />
+                </View>
+                
+                <View style={styles.formGroup}>
+                  <Text style={styles.modalLabel}>Imagem:</Text>
+                  <TouchableOpacity 
+                    style={styles.imagePickerButton}
+                    onPress={pickImage}
+                  >
+                    <View style={styles.imagePreview}>
+                      {newPlanetImageUri ? (
+                        <Image
+                          source={{ uri: newPlanetImageUri }}
+                          style={{ width: '100%', height: '100%', borderRadius: 40 }}
+                          contentFit="cover"
+                        />
+                      ) : (
+                        <View style={styles.imagePickerOverlay}>
+                          <Text style={styles.imagePickerText}>Selecionar imagem</Text>
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
                 </View>
                 
                 <View style={styles.buttonRow}>
                   <TouchableOpacity
                     style={[styles.button, styles.cancelButton]}
                     onPress={() => {
-                      setCurrentPlanet(null);
+                      setNewPlanetName('');
                       setNewPlanetCuriosity('');
-                      setEditModalVisible(false);
+                      setNewPlanetImageUri(null);
+                      setAddModalVisible(false);
+                      Keyboard.dismiss();
                     }}
                   >
                     <Text style={styles.buttonText}>Cancelar</Text>
@@ -362,17 +397,68 @@ export default function PlanetExploreScreen() {
                   
                   <TouchableOpacity
                     style={[styles.button, styles.confirmButton]}
-                    onPress={updatePlanet}
+                    onPress={addPlanet}
                   >
-                    <Text style={styles.buttonText}>Salvar</Text>
+                    <Text style={styles.buttonText}>Adicionar</Text>
                   </TouchableOpacity>
                 </View>
-              </>
-            )}
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+
+        {/* Modal para editar planeta */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={editModalVisible}
+          onRequestClose={() => setEditModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              {currentPlanet && (
+                <>
+                  <Text style={styles.modalTitle}>Editar {currentPlanet.nomePlaneta}</Text>
+                  
+                  <View style={styles.formGroup}>
+                    <Text style={styles.modalLabel}>Curiosidade:</Text>
+                    <TextInput
+                      style={[styles.input, styles.textArea]}
+                      value={newPlanetCuriosity}
+                      onChangeText={setNewPlanetCuriosity}
+                      placeholder="Adicione uma curiosidade"
+                      placeholderTextColor="rgba(255, 255, 255, 0.5)"
+                      multiline={true}
+                      numberOfLines={3}
+                    />
+                  </View>
+                  
+                  <View style={styles.buttonRow}>
+                    <TouchableOpacity
+                      style={[styles.button, styles.cancelButton]}
+                      onPress={() => {
+                        setCurrentPlanet(null);
+                        setNewPlanetCuriosity('');
+                        setEditModalVisible(false);
+                      }}
+                    >
+                      <Text style={styles.buttonText}>Cancelar</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={[styles.button, styles.confirmButton]}
+                      onPress={updatePlanet}
+                    >
+                      <Text style={styles.buttonText}>Salvar</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -457,11 +543,12 @@ const styles = StyleSheet.create({
     marginRight: 15,
     marginLeft: -8,
     marginTop: -2,
+    overflow: 'hidden',
   },
   planetImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: '100%',
+    height: '100%',
+    borderRadius: 15,
   },
   planetInfo: {
     flex: 1,
