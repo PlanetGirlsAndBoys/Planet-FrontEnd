@@ -35,23 +35,5 @@ A ideia é criar uma experiência divertida, flexível e educativa — afinal, c
 ✅ Atualizar planetas existentes
 ✅ Excluir planetas
 
----
+--------
 
-## 🔧 Back-End da Aplicação
-
-* Desenvolvido com **Spring Boot**
-* Projeto Maven com banco **H2 em memória** chamado `spaceX`
-* API REST documentada com **Swagger**
-* Estrutura simples focada em operações CRUD
-
-### Endpoints disponíveis:
-
-* Criar planeta
-* Buscar por ID
-* Listar todos
-* Atualizar por ID
-* Deletar por ID
-
-A documentação completa da API pode ser acessada via Swagger UI.
-
-------
