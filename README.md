@@ -1,31 +1,41 @@
-# 🌌 Front-end Catálogo de Curiosidades Planetárias
+🌌 Catálogo de Curiosidades Planetárias – Front-End
 
-![Universo](https://media.giphy.com/media/LwIyvaNcnzsD6/giphy.gif)
 
-Bem-vindo ao repositório oficial do projeto **Catálogo de Curiosidades Planetárias**, desenvolvido com o objetivo de permitir que qualquer pessoa registre e gerencie planetas fictícios ou reais, com imagens e curiosidades únicas.
+Bem-vindo ao repositório Front-end do projeto Catálogo de Curiosidades Planetárias!
+Este aplicativo mobile foi desenvolvido com React Native + Expo e tem como objetivo permitir que qualquer pessoa registre e gerencie planetas fictícios ou reais, com imagens e curiosidades únicas. 🪐
 
----
+🚀 Objetivo do Projeto
+Criar uma aplicação mobile multiplataforma, divertida e educativa, onde os usuários possam:
 
-## 🚀 Objetivo do Projeto
+📸 Inserir novos planetas com imagem personalizada
 
-Desenvolver uma aplicação mobile multiplataforma com React Native + Expo que permita:
+💬 Adicionar curiosidades únicas sobre cada planeta
 
-* Inserir novos planetas com uma imagem e curiosidade à escolha do usuário
-* Visualizar uma lista dinâmica desses planetas
-* Editar detalhes dos planetas
-* Excluir planetas do catálogo
+📋 Visualizar uma lista dinâmica de planetas cadastrados
 
-A ideia é criar uma experiência divertida, flexível e educativa — afinal, cada planeta pode carregar uma história diferente 🪐
+✏️ Editar detalhes dos planetas
 
----
+❌ Excluir planetas do catálogo
 
-## 📱 Aplicativo Mobile
+🛠️ Tecnologias Utilizadas
+React Native – Desenvolvimento mobile multiplataforma
 
-* Desenvolvido com **React Native + Expo**
-* Usa **TypeScript** para maior organização e tipagem
-* Requisições HTTP com **Axios**
-* Testado em dispositivos reais via **Expo Go**
-* Estrutura modular com componentes reutilizáveis
+Expo – Ferramenta para facilitar o desenvolvimento e testes
+
+TypeScript – Tipagem estática para maior confiabilidade
+
+Axios – Requisições HTTP para o backend
+
+React Navigation – Navegação entre telas
+
+React Hook Form + Yup – Manipulação e validação de formulários
+
+AsyncStorage (caso use armazenamento local) – Armazenamento local simples
+
+Styled-Components – Estilização modular com suporte a temas
+
+ESLint + Prettier – Padronização e qualidade de código
+
 
 ### Funcionalidades:
 
