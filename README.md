@@ -37,11 +37,17 @@ O app oferece uma interface moderna e intuitiva para:
 A estrutura está organizada de forma modular para garantir escalabilidade e manutenção simples:
 
 📁 .vscode → Configurações de ambiente
+
 📁 app → Configurações do Expo
+
 📁 assets → Imagens, ícones e recursos visuais
+
 📁 components → Componentes reutilizáveis da UI
+
 📁 constants → Constantes globais (ex: cores, rotas, temas)
+
 📁 hooks → Custom React Hooks (ex: usePlanet, useFetch)
+
 📁 scripts → Scripts auxiliares (ex: geração de dados, setup)
 
 ---
