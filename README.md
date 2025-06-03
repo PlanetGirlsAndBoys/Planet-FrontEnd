@@ -1,6 +1,6 @@
 # 🌌 Catálogo de Curiosidades Planetárias – Front-End  
 
-![Universo](https://media.giphy.com/media/LwIyvaNcnzsD6/giphy.gif)
+![Universo](https://netnature.wordpress.com/wp-content/uploads/2019/06/buraco-negro.gif?w=512&h=288)
 
 Este é o **front-end mobile** do projeto **Catálogo de Curiosidades Planetárias**, um aplicativo desenvolvido com **React Native + Expo** que permite explorar, cadastrar e gerenciar planetas fictícios ou reais, junto com curiosidades visuais e textuais 🌍🪐
 
