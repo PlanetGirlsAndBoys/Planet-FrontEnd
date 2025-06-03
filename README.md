@@ -1,49 +1,48 @@
-🌌 Catálogo de Curiosidades Planetárias – Front-End
+# 🌌 Catálogo de Curiosidades Planetárias – Front-End  
 
+![Universo](https://media.giphy.com/media/LwIyvaNcnzsD6/giphy.gif)
 
-Bem-vindo ao repositório Front-end do projeto Catálogo de Curiosidades Planetárias!
-Este aplicativo mobile foi desenvolvido com React Native + Expo e tem como objetivo permitir que qualquer pessoa registre e gerencie planetas fictícios ou reais, com imagens e curiosidades únicas. 🪐
+Este é o **front-end mobile** do projeto **Catálogo de Curiosidades Planetárias**, um aplicativo desenvolvido com **React Native + Expo** que permite explorar, cadastrar e gerenciar planetas fictícios ou reais, junto com curiosidades visuais e textuais 🌍🪐
 
-🚀 Objetivo do Projeto
-Criar uma aplicação mobile multiplataforma, divertida e educativa, onde os usuários possam:
+---
 
-📸 Inserir novos planetas com imagem personalizada
+## 🚀 Sobre o Projeto
 
-💬 Adicionar curiosidades únicas sobre cada planeta
+O app oferece uma interface moderna e intuitiva para:
 
-📋 Visualizar uma lista dinâmica de planetas cadastrados
+- Criar planetas com nome, imagem e curiosidade associada  
+- Visualizar lista completa dos planetas  
+- Editar e atualizar planetas  
+- Excluir planetas do catálogo  
+- Navegar de forma fluida entre telas com uma experiência leve e educativa  
 
-✏️ Editar detalhes dos planetas
+---
 
-❌ Excluir planetas do catálogo
+## 🧪 Tecnologias Utilizadas
 
-🛠️ Tecnologias Utilizadas
-React Native – Desenvolvimento mobile multiplataforma
+- **React Native** – Framework mobile com foco em performance  
+- **Expo** – Plataforma de desenvolvimento e deploy simplificado  
+- **TypeScript** – Tipagem estática e maior robustez no desenvolvimento  
+- **React Navigation** – Navegação entre telas do app  
+- **Axios** – Comunicação com API backend REST  
+- **Styled-Components** – Estilização de componentes com suporte a temas  
+- **React Hook Form + Yup** – Controle e validação de formulários  
+- **AsyncStorage** *(se usado)* – Armazenamento local leve e persistente  
+- **ESLint + Prettier** – Padronização de código  
 
-Expo – Ferramenta para facilitar o desenvolvimento e testes
+---
 
-TypeScript – Tipagem estática para maior confiabilidade
+## 🗂️ Estrutura de Pastas
 
-Axios – Requisições HTTP para o backend
+A estrutura está organizada de forma modular para garantir escalabilidade e manutenção simples:
 
-React Navigation – Navegação entre telas
+📁 .vscode → Configurações de ambiente
+📁 app → Configurações do Expo
+📁 assets → Imagens, ícones e recursos visuais
+📁 components → Componentes reutilizáveis da UI
+📁 constants → Constantes globais (ex: cores, rotas, temas)
+📁 hooks → Custom React Hooks (ex: usePlanet, useFetch)
+📁 scripts → Scripts auxiliares (ex: geração de dados, setup)
 
-React Hook Form + Yup – Manipulação e validação de formulários
-
-AsyncStorage (caso use armazenamento local) – Armazenamento local simples
-
-Styled-Components – Estilização modular com suporte a temas
-
-ESLint + Prettier – Padronização e qualidade de código
-
-
-### Funcionalidades:
-
-✅ Inserir planeta com imagem personalizada
-✅ Adicionar uma curiosidade livre
-✅ Listar todos os planetas cadastrados
-✅ Atualizar planetas existentes
-✅ Excluir planetas
-
---------
+---
 
